@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Local DB commented out in favor of Neon PostgreSQL
+  # db:
+  #   image: timescale/timescaledb:latest-pg16
+  #   environment:
+  #     POSTGRES_DB: uptime
+  #     POSTGRES_PASSWORD: password
+  #   ports:
+  #     - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+  api:
+    build: .
+    command: ./api
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: ./worker
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis:6379
+    depends_on:
+      - redis
